@@ -5,6 +5,7 @@ import numpy as np
 from random import randint
 
 from reflacx_sample import ReflacxSample
+from dicom_imgs import DicomImgs
 
 
 class Metadata:
@@ -15,7 +16,10 @@ class Metadata:
                  reflacx_main_data_dir='main_data',
                  heatmaps_search_term='heatmaps_phase_',
                  metadata_search_term='metadata',
-                 exclude_invalid_eyetracking=True):
+                 exclude_invalid_eyetracking=True,
+                 max_dicom_lib_ram_percent=60):
+        
+        self.imgs_lib = DicomImgs(max_ram_percent=max_dicom_lib_ram_percent)
         
         print("loading metadata")
         if os.path.exists(full_meta_path):
@@ -111,5 +115,8 @@ class Metadata:
 
     def get_sample(self, dicom_id, reflacx_id):
         if dicom_id in self.metadata and reflacx_id in self.metadata[dicom_id]:
-            return ReflacxSample(dicom_id, reflacx_id, self.metadata[dicom_id][reflacx_id])
+            return ReflacxSample(dicom_id,
+                                 reflacx_id,
+                                 self.metadata[dicom_id][reflacx_id],
+                                 imgs_lib=self.imgs_lib)
         return None

@@ -3,14 +3,14 @@ import numpy as np
 from matplotlib import cm
 import cv2
 from generate_heatmaps import create_heatmap
-from dicom_imgs import DicomImgs
 
 
 class ReflacxSample:
-    def __init__(self, dicom_id, reflacx_id, sample_dict):
+    def __init__(self, dicom_id, reflacx_id, sample_dict, imgs_lib):
         self.data = sample_dict
         self.dicom_id = dicom_id
         self.reflacx_id = reflacx_id
+        self.imgs_lib = imgs_lib
         self.dicom_img = None
         self.chest_bb = None
         self.fixations = None
@@ -30,7 +30,7 @@ class ReflacxSample:
 
     
     def get_dicom_img(self):
-        return DicomImgs.get_dicom_img(self.dicom_id, imgpath=self.data['image'])
+        return self.imgs_lib.get_dicom_img(self.dicom_id, imgpath=self.data['image'])
     
 
     def get_chest_bounding_box(self):
