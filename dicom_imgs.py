@@ -35,7 +35,7 @@ class DicomImgs:
             try:
                 img = pydicom.read_file(imgpath).pixel_array
             except ValueError:
-                self.log("""corrupted dicom file for dicom_id {} path: {}""".format(dicom_id, imgpath))
+                self.log("corrupted dicom file for dicom_id {} path: {}".format(dicom_id, imgpath))
                 return None
             self.imgs[dicom_id] = img
             try:

@@ -122,5 +122,5 @@ class Metadata:
                                  self.metadata[dicom_id][reflacx_id],
                                  imgs_lib=self.imgs_lib)
         except KeyError:
-            self.log("\n\nmissing pair from metadata: {} --- {}".format(dicom_id, reflacx_id), False)
+            self.log("missing pair from metadata: {} --- {}".format(dicom_id, reflacx_id), False)
             return None
