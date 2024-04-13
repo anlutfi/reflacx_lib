@@ -58,7 +58,9 @@ class ReflacxSample:
 
     def get_fixations(self):
         if self.fixations is None:
-            self.fixations = csv2dictlist(self.data['fixations'])
+            self.fixations = (csv2dictlist(self.data['fixations'])
+                              if 'fixations' in self.data
+                              else [])
         return self.fixations
     
 

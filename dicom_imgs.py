@@ -28,7 +28,11 @@ class DicomImgs:
     def get_dicom_img(self, dicom_id, imgpath=None):
         assert dicom_id in self.imgs or imgpath is not None
         if dicom_id not in self.imgs:
-            img = pydicom.read_file(imgpath).pixel_array
+            try:
+                img = pydicom.read_file(imgpath).pixel_array
+            except ValueError:
+                #TODO log
+                return None
             self.imgs[dicom_id] = img
             try:
                 i = self.last_accessed.index(dicom_id)

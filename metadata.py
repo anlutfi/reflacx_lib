@@ -114,9 +114,11 @@ class Metadata:
     
 
     def get_sample(self, dicom_id, reflacx_id):
-        if dicom_id in self.metadata and reflacx_id in self.metadata[dicom_id]:
+        try:
             return ReflacxSample(dicom_id,
                                  reflacx_id,
                                  self.metadata[dicom_id][reflacx_id],
                                  imgs_lib=self.imgs_lib)
-        return None
+        except KeyError:
+            #TODO log missing dicom_id, reflacx_id pair
+            return None
