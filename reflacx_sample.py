@@ -1,9 +1,9 @@
+from rlogger import RLogger
 from tools import csv2dictlist, normalize
 import numpy as np
 from matplotlib import cm
 import cv2
 from generate_heatmaps import create_heatmap
-
 
 class ReflacxSample:
     def __init__(self, dicom_id, reflacx_id, sample_dict, imgs_lib):
@@ -21,6 +21,7 @@ class ReflacxSample:
 
         self.color_gen = lambda cmap: lambda ratio: tuple((int(255 * comp) for comp in cmap(ratio)[:3]))
 
+        self.log = RLogger(__name__, self.__class__.__name__)
 
     def canvas(self):
         canvas = np.copy(self.get_dicom_img())
@@ -30,12 +31,20 @@ class ReflacxSample:
 
     
     def get_dicom_img(self):
-        return self.imgs_lib.get_dicom_img(self.dicom_id, imgpath=self.data['image'])
+        result = self.imgs_lib.get_dicom_img(self.dicom_id, imgpath=self.data['image'])
+        if result is None:
+            self.log('missing dicom img for pair {} --- {}'.format(self.dicom_id, self.reflacx_id))
+        return 
     
 
     def get_chest_bounding_box(self):
         if self.chest_bb is None:
-            self.chest_bb = csv2dictlist(self.data['chest_bounding_box'])[0]
+            try:
+                self.chest_bb = csv2dictlist(self.data['chest_bounding_box'])[0]
+            except KeyError:
+                self.log('missing chest_bb from point {} --- {}'.format(self.dicom_id, self.reflacx_id))
+                return None
+            
             dicom_img = self.get_dicom_img()
             self.chest_bb['xmin'] = min(dicom_img.shape[0],
                                         max(self.chest_bb['xmin'], 0))

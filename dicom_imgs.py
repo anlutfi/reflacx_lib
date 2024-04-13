@@ -1,3 +1,4 @@
+from rlogger import RLogger
 import numpy as np
 import pydicom
 from psutil import virtual_memory
@@ -10,6 +11,7 @@ class DicomImgs:
     Loaded images occupy at most a fixed percentage of available virtual memory.
     When exceeding limit, last accessed images will be unloaded first"""
         
+    
     def __init__(self, max_ram_percent=60):
         """param:max_ram_percent sets the maximum consumption of virtual memory
         by the images. It calculates a constant limit based on the total free
@@ -20,6 +22,8 @@ class DicomImgs:
         self.max_ram_usage = int(virtual_memory().free * max_ram_percent / 100)
         self.ram_usage = 0
         self.last_accessed = []
+
+        self.log = RLogger(__name__, self.__class__.__name__)
     
     def check_id(self, dicom_id):
         return dicom_id in self.imgs
@@ -31,7 +35,7 @@ class DicomImgs:
             try:
                 img = pydicom.read_file(imgpath).pixel_array
             except ValueError:
-                #TODO log
+                self.log("""corrupted dicom file for dicom_id {} path: {}""".format(dicom_id, imgpath))
                 return None
             self.imgs[dicom_id] = img
             try:

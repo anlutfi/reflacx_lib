@@ -1,3 +1,4 @@
+from rlogger import RLogger
 import os
 from tools import csv2dictlist
 import json
@@ -19,6 +20,7 @@ class Metadata:
                  exclude_invalid_eyetracking=True,
                  max_dicom_lib_ram_percent=60):
         
+        self.log = RLogger(__name__, self.__class__.__name__)
         self.imgs_lib = DicomImgs(max_ram_percent=max_dicom_lib_ram_percent)
         
         print("loading metadata")
@@ -120,5 +122,5 @@ class Metadata:
                                  self.metadata[dicom_id][reflacx_id],
                                  imgs_lib=self.imgs_lib)
         except KeyError:
-            #TODO log missing dicom_id, reflacx_id pair
+            self.log("\n\nmissing pair from metadata: {} --- {}".format(dicom_id, reflacx_id), False)
             return None
