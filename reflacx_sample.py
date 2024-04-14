@@ -42,7 +42,7 @@ class ReflacxSample:
             try:
                 self.chest_bb = csv2dictlist(self.data['chest_bounding_box'])[0]
             except KeyError:
-                self.log('missing chest_bb from point {} --- {}'.format(self.dicom_id, self.reflacx_id))
+                self.log('missing chest_bb for pair {} --- {}'.format(self.dicom_id, self.reflacx_id))
                 return None
             
             dicom_img = self.get_dicom_img()
@@ -67,9 +67,12 @@ class ReflacxSample:
 
     def get_fixations(self):
         if self.fixations is None:
-            self.fixations = (csv2dictlist(self.data['fixations'])
-                              if 'fixations' in self.data
-                              else [])
+            try:
+                self.fixations = (csv2dictlist(self.data['fixations'])
+                                  if 'fixations' in self.data
+                                  else [])
+            except KeyError:
+                self.log('missing fixations for pair {} --- {}'.format(self.dicom_id, self.reflacx_id))
         return self.fixations
     
 

@@ -12,7 +12,7 @@ class DicomImgs:
     When exceeding limit, last accessed images will be unloaded first"""
         
     
-    def __init__(self, max_ram_percent=60):
+    def __init__(self, max_ram_percent=30):
         """param:max_ram_percent sets the maximum consumption of virtual memory
         by the images. It calculates a constant limit based on the total free
         memory reported by psutil.virtual_memory at instantiation
