@@ -34,7 +34,7 @@ class ReflacxSample:
         result = self.imgs_lib.get_dicom_img(self.dicom_id, imgpath=self.data['image'])
         if result is None:
             self.log('missing dicom img for pair {} --- {}'.format(self.dicom_id, self.reflacx_id))
-        return 
+        return result
     
 
     def get_chest_bounding_box(self):
