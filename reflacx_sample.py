@@ -200,8 +200,15 @@ class ReflacxSample:
 
     def get_heatmap(self, chest_only=False):
         if self.global_heatmap is None:
-            hm = np.load(self.data['heatmaps'], allow_pickle=True).item()['np_image']
-            self.global_heatmap = normalize(hm, type=hm.dtype)
+            try:
+                hm = np.load(self.data['heatmaps'], allow_pickle=True).item()['np_image']
+                self.global_heatmap = normalize(hm, type=hm.dtype)
+            except KeyError:
+                self.log('heatmaps not found for pair {} --- {}'.format(self.dicom_id, self.reflacx_id))
+                raise KeyError
+            except FileNotFoundError:
+                self.log('heatmaps FILE not found for pair {} --- {}'.format(self.dicom_id, self.reflacx_id))
+                raise FileNotFoundError
         
         if not chest_only:
             return np.copy(self.global_heatmap)
@@ -241,7 +248,10 @@ class ReflacxSample:
 
     def get_anomaly_ellipses(self):
         if self.anomaly_ellipses is None:
-            self.anomaly_ellipses = csv2dictlist(self.data['anomaly_location_ellipses'])
+            try:
+                self.anomaly_ellipses = csv2dictlist(self.data['anomaly_location_ellipses'])
+            except KeyError:
+                self.log('Missing anomaly ellipses for pair {} --- {}'.format(self.dicom_id, self.reflacx_id))
         return self.anomaly_ellipses
     
 
