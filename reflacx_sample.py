@@ -277,3 +277,7 @@ class ReflacxSample:
             result[anomalies] = canvas
 
         return result
+    
+
+    def debug_fixation(self, fixation_idx):
+        pass # TODO

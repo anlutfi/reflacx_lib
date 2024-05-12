@@ -124,3 +124,8 @@ class Metadata:
         except KeyError:
             self.log("missing pair from metadata: {} --- {}".format(dicom_id, reflacx_id), False)
             return None
+        
+
+    def debug_fixation(self, dicom_id, reflacx_id, fixation_idx):
+        sample  = self.get_sample(dicom_id, reflacx_id)
+        return sample.debug_fixation(fixation_idx)
