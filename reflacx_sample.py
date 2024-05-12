@@ -281,3 +281,8 @@ class ReflacxSample:
 
     def debug_fixation(self, fixation_idx):
         pass # TODO
+        # get img
+        # get chest_bb
+        # get fixation at idx
+        # get fixation angx and angy bb
+        # draw everything
