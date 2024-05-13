@@ -126,6 +126,11 @@ class Metadata:
             return None
         
 
+    def get_dicom_img(self, dicom_id):
+        sample = self.get_sample(dicom_id, self.list_reflacx_ids(dicom_id)[0])
+        return sample.get_dicom_img()
+        
+
     def debug_fixation(self, dicom_id, reflacx_id, fixation_idx, stdevs=1):
         sample  = self.get_sample(dicom_id, reflacx_id)
         return sample.debug_fixation(fixation_idx, stdevs=stdevs)
