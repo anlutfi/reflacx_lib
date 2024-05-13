@@ -23,13 +23,14 @@ class ReflacxSample:
 
         self.log = RLogger(__name__, self.__class__.__name__)
 
+
     def canvas(self):
         canvas = np.copy(self.get_dicom_img())
         canvas = cv2.cvtColor(canvas, cv2.COLOR_GRAY2RGB)
         canvas >>= 4
         return canvas
 
-    
+
     def get_dicom_img(self):
         result = self.imgs_lib.get_dicom_img(self.dicom_id, imgpath=self.data['image'])
         if result is None:
@@ -279,10 +280,52 @@ class ReflacxSample:
         return result
     
 
-    def debug_fixation(self, fixation_idx):
-        pass # TODO
-        # get img
-        # get chest_bb
-        # get fixation at idx
-        # get fixation angx and angy bb
-        # draw everything
+    def debug_fixation(self, fixation_idx, stdevs=1):
+        canvas = self.canvas()
+        
+        #draw chest bounding box
+        bb = self.get_chest_bounding_box()
+        canvas = cv2.rectangle(canvas,
+                               (bb['xmin'], bb['ymin']),
+                               (bb['xmax'], bb['ymax']),
+                               (0, 255, 255),
+                               4)
+        
+        #draw fixation at specified index
+        try:
+            fixation = self.get_fixations()[fixation_idx]
+        except IndexError:
+            return None
+        
+        x = int(min(max(int(fixation['x_position']), 0), canvas.shape[1]))
+        y = int(min(max(int(fixation['y_position']), 0), canvas.shape[0]))
+
+        color = ((255, 255, 0)
+                 if (x == fixation['x_position'] and y == fixation['y_position'])
+                 else (255, 0, 0))
+        
+        canvas = cv2.circle(canvas, (x, y), 40, color, -1)
+        
+        #draw viewed area according to fixation's angular resolution
+        angx = fixation['angular_resolution_x_pixels_per_degree']
+        angy = fixation['angular_resolution_y_pixels_per_degree']
+        
+        min_x = int(min(max(x - angx * stdevs, 0), canvas.shape[1]))
+        min_y = int(min(max(y - angy * stdevs, 0), canvas.shape[0]))
+        max_x = int(min(max(x + angx * stdevs, 0), canvas.shape[1]))
+        max_y = int(min(max(y + angy * stdevs, 0), canvas.shape[0]))
+
+        canvas = cv2.rectangle(canvas,
+                               (min_x, min_y),
+                               (max_x, max_y),
+                               (0, 255, 0),
+                               4)
+        
+        data = {'chest': ((bb['xmin'], bb['ymin']), (bb['xmax'], bb['ymax'])),
+                'fixation': (fixation['x_position'], fixation['y_position']),
+                'adjusted_fixation': (x, y),
+                'viewed_area': ((min_x, min_y), (max_x, max_y))}
+        
+        return canvas, data
+        
+        
