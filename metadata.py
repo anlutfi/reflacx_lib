@@ -40,7 +40,7 @@ class Metadata:
         for metadata_file in [item
                             for item in os.listdir(main_data_dir)
                             if metadata_search_term in item]:
-            phase = metadata_file.split("_")[-1].split('.')[0]
+            phase = int(metadata_file.split("_")[-1].split('.')[0])
             md = csv2dictlist("{}{}{}".format(main_data_dir,
                               os.sep,
                               metadata_file))
@@ -88,7 +88,7 @@ class Metadata:
                 dicom_metadata[dicom_id][id]['heatmaps'] = npy_path
 
         self.metadata = dicom_metadata
-        #self.make_idx()
+        self.make_idx()
 
 
         with open(full_meta_path, 'w') as f:
@@ -111,7 +111,7 @@ class Metadata:
                     self.splits[phase] = {}
                 if split not in self.splits[phase]:
                     self.splits[phase][split] = []
-                self.splits[phase][split].append(rid)
+                self.splits[phase][split].append(i)
                 i += 1
                 
     
