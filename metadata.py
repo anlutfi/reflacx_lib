@@ -27,6 +27,7 @@ class Metadata:
         if os.path.exists(full_meta_path):
             with open(full_meta_path) as f:
                 self.metadata = json.load(f)
+                self.make_idx()
             print("metadata loaded from file")
             return
         
@@ -39,14 +40,16 @@ class Metadata:
         for metadata_file in [item
                             for item in os.listdir(main_data_dir)
                             if metadata_search_term in item]:
-            reflacx_metadata += csv2dictlist("{}{}{}".format(main_data_dir,
-                                                                os.sep,
-                                                                metadata_file))
+            phase = metadata_file.split("_")[-1].split('.')[0]
+            md = csv2dictlist("{}{}{}".format(main_data_dir,
+                              os.sep,
+                              metadata_file))
+            reflacx_metadata += [(phase, x) for x in md]
         
         dicom_metadata = {}
         
         print("grouping reflacx metadata by dicom_id")
-        for item in reflacx_metadata:
+        for phase, item in reflacx_metadata:
             if (item.pop('eye_tracking_data_discarded') in ['TRUE', 'True', 'true']
                 and exclude_invalid_eyetracking):
                 continue
@@ -70,7 +73,7 @@ class Metadata:
                                                                     os.sep,
                                                                     eyetracking_file)
             dicom_metadata[dicom_id][id] = item
-
+            dicom_metadata[dicom_id][id]['phase'] = phase
         print("grouping heatmaps")
         for dir in [item for item in os.listdir(reflacx_dir) if heatmaps_search_term in item]:
             path = "{}{}{}".format(reflacx_dir, os.sep, dir)
@@ -84,13 +87,50 @@ class Metadata:
                 id = heatmap.pop('id')
                 dicom_metadata[dicom_id][id]['heatmaps'] = npy_path
 
-
         self.metadata = dicom_metadata
+        #self.make_idx()
+
 
         with open(full_meta_path, 'w') as f:
             json.dump(self.metadata, f)
         print("done")
 
+    
+    def make_idx(self):
+        self.reflacx_idx = {}
+        self.idx = {}
+        self.splits = {}
+        i = 0
+        for did in self.metadata:
+            for rid in self.metadata[did]:
+                self.reflacx_idx[rid] = did
+                self.idx[i] = rid
+                phase = self.metadata[did][rid]['phase']
+                split = self.metadata[did][rid]['split']
+                if phase not in self.splits:
+                    self.splits[phase] = {}
+                if split not in self.splits[phase]:
+                    self.splits[phase][split] = []
+                self.splits[phase][split].append(rid)
+                i += 1
+                
+    
+    def get_split(self, split, phase=None):
+        #TODO add asserts
+        if phase is not None:
+            return self.splits[phase][split].copy()
+        result = []
+        for phase in self.splits:
+            result += self.splits[phase][split].copy()
+        return result
+    
+
+    def get_phase(self, phase):
+        result = []
+        for split in self.splits[phase]:
+            result += self.splits[phase][split].copy()
+        return result
+    
     
     def list_dicom_ids(self, n_samples=None, reverse=False, random_samples=False):
         if n_samples is None:
@@ -124,6 +164,15 @@ class Metadata:
         except KeyError:
             self.log("missing pair from metadata: {} --- {}".format(dicom_id, reflacx_id), False)
             return None
+        
+
+    def get_sample_r(self, reflacx_id):
+        return self.get_sample(self.reflacx_idx[reflacx_id], reflacx_id)
+    
+
+    def __getitem__(self, i):
+        rid = self.idx[i]
+        return self.get_sample_r(rid)
         
 
     def get_dicom_img(self, dicom_id):
