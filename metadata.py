@@ -18,10 +18,15 @@ class Metadata:
                  heatmaps_search_term='heatmaps_phase_',
                  metadata_search_term='metadata',
                  exclude_invalid_eyetracking=True,
-                 max_dicom_lib_ram_percent=60):
+                 max_dicom_lib_ram_percent=60,
+                 valid_img_only=False,
+                 valid_fixations_only=False):
         
         self.log = RLogger(__name__, self.__class__.__name__)
         self.imgs_lib = DicomImgs(max_ram_percent=max_dicom_lib_ram_percent)
+        
+        self.valid_img_only = valid_img_only
+        self.valid_fixations_only = valid_fixations_only        
         
         print("loading metadata")
         if os.path.exists(full_meta_path):
@@ -103,6 +108,11 @@ class Metadata:
         i = 0
         for did in self.metadata:
             for rid in self.metadata[did]:
+                if self.valid_fixations_only or self.valid_img_only:
+                    sample = self.get_sample(did, rid)
+                    if ((sample.get_dicom_img() is None and self.valid_img_only) or
+                        (len(sample.get_fixations()) == 0 and self.valid_fixations_only)):
+                        continue
                 self.reflacx_idx[rid] = did
                 self.idx[i] = rid
                 phase = self.metadata[did][rid]['phase']
