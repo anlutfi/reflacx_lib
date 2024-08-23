@@ -28,12 +28,31 @@ class Metadata:
         self.valid_img_only = valid_img_only
         self.valid_fixations_only = valid_fixations_only        
         
+        full_meta_dir = full_meta_path.rpartition(os.sep)[0]
+        mk_pth = lambda s: os.sep.join([full_meta_dir, s])
+        reflacx_idx_path = mk_pth('reflacx_idx.json')
+        idx_path = mk_pth('idx.json')
+        splits_path = mk_pth('splits.json')
         print("loading metadata")
         if os.path.exists(full_meta_path):
             with open(full_meta_path) as f:
                 self.metadata = json.load(f)
-                self.make_idx()
-            print("metadata loaded from file")
+                print("metadata loaded from file")
+            if (os.path.exists(reflacx_idx_path) and
+                os.path.exists(idx_path) and
+                os.path.exists(splits_path)):
+                with open(reflacx_idx_path, 'r') as f:
+                    self.reflacx_idx = json.load(f)
+                with open(idx_path, 'r') as f:
+                    self.idx = json.load(f)
+                    self.idx = {int(k): self.idx[k] for k in self.idx}
+                with open(splits_path, 'r') as f:
+                    self.splits = json.load(f)
+                    self.splits = {int(k): self.splits[k] for k in self.splits}
+                print("indices loaded from file")
+            else:
+                print("missing indices' files. calculating indices")
+                self.make_idx(reflacx_idx_path, idx_path, splits_path)            
             return
         
         print("file not found, generating metadata from reflacx and mimic. This will take about 20 min.")
@@ -93,15 +112,16 @@ class Metadata:
                 dicom_metadata[dicom_id][id]['heatmaps'] = npy_path
 
         self.metadata = dicom_metadata
-        self.make_idx()
+        self.make_idx(reflacx_idx_path, idx_path, splits_path)
 
 
         with open(full_meta_path, 'w') as f:
             json.dump(self.metadata, f)
+        
         print("done")
 
     
-    def make_idx(self):
+    def make_idx(self, reflacx_idx_path, idx_path, splits_path):
         self.reflacx_idx = {}
         self.idx = {}
         self.splits = {}
@@ -123,6 +143,13 @@ class Metadata:
                     self.splits[phase][split] = []
                 self.splits[phase][split].append(i)
                 i += 1
+
+        with open(reflacx_idx_path, 'w') as f:
+            json.dump(self.reflacx_idx, f)
+        with open(idx_path, 'w') as f:
+            json.dump(self.idx, f)
+        with open(splits_path, 'w') as f:
+            json.dump(self.splits, f)
                 
     
     def get_split(self, split, phase=None):
