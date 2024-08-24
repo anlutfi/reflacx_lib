@@ -210,6 +210,10 @@ class Metadata:
     def __getitem__(self, i):
         rid = self.idx[i]
         return self.get_sample_r(rid)
+    
+    
+    def __len__(self):
+        return len(self.idx)
         
 
     def get_dicom_img(self, dicom_id):
